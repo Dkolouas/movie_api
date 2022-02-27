@@ -24,62 +24,58 @@ let users = [
 
 let movies = [
   {
-    "Title": "Inglourious Basterds",
-    "Description":
+    title: "Inglourious Basterds",
+    description:
       "In Nazi-occupied France during World War II, a plan to assassinate Nazi leaders by a group of Jewish U.S. soldiers coincides with a theatre owner's vengeful plans for the same. In German-occupied France, young Jewish refugee Shosanna Dreyfus witnesses the slaughter of her family by Colonel Hans Landa",
-    "Genre": {
-      "Name": "Action",
+    genre: {
+      name: "Action",
     },
-    "Director": {
-      "Name": "Quentin Tarantino",
-      "Bio":
-        "Quentin Tarantino was born on March 27, in Knoxville, Tennessee. He is the only child of Connie McHugh, who is part Cherokee and part Irish, and actor Tony Tarantino, who left the family before Quentin was born. Moving to California at the age of 4, Tarantino developed his love for movies at an early age.",
-      "Born": "1963",
+    director: {
+      name: "Quentin Tarantino",
+      bio: "Quentin Tarantino was born on March 27, in Knoxville, Tennessee. He is the only child of Connie McHugh, who is part Cherokee and part Irish, and actor Tony Tarantino, who left the family before Quentin was born. Moving to California at the age of 4, Tarantino developed his love for movies at an early age.",
+      born: "1963",
     },
   },
 
   {
-    "Title": "The Matrix",
-    "Description":
+    title: "The Matrix",
+    description:
       "It depicts a dystopian future in which humanity is unknowingly trapped inside a simulated reality, the Matrix, which intelligent machines have created to distract humans while using their bodies as an energy source.",
-    "Genre": {
-      "Name": "Sci-Fi",
+    genre: {
+      name: "Sci-Fi",
     },
-    "Director": {
-      "Name": "Lana Wachowski",
-      "Bio":
-        "Lana Wachowski He is an American film director, screenwriter and producer. Lana is a popular transgender woman and has been one of the best directors and writers for making a successful movie, “The Matrix” and her series and Critical hit movie “Bound” with his sister, Lilly Wachowski.",
-      "Born": " 1965 ",
+    director: {
+      name: "Lana Wachowski",
+      bio: "Lana Wachowski He is an American film director, screenwriter and producer. Lana is a popular transgender woman and has been one of the best directors and writers for making a successful movie, “The Matrix” and her series and Critical hit movie “Bound” with his sister, Lilly Wachowski.",
+      born: " 1965 ",
     },
   },
 
   {
-    "Title": "The Godfather",
-    "Description":
+    title: "The Godfather",
+    description:
       "The Godfather is set in the 1940s and takes place entirely within the world of the Corleones, a fictional New York Mafia family. It opens inside the dark office of the family patriarch, Don Vito Corleone (also known as the Godfather and played by Brando), on the wedding day of his daughter, Connie (Talia Shire).",
-    "Genre": {
-      "Name": "Drama",
+    genre: {
+      name: "Drama",
     },
-    "Director": {
-      "Name": " Francis Ford Coppola",
-      "Bio":
-        "Coppola was born on April 7, in Detroit, Michigan. Stricken with polio as a child, he was bedridden and found creative ways to entertain himself, including producing his own puppet shows. Coppola developed an interest in film early on and studied theater at Hofstra University in New York",
-      "Born": " 1939",
+    director: {
+      name: " Francis Ford Coppola",
+      bio: "Coppola was born on April 7, in Detroit, Michigan. Stricken with polio as a child, he was bedridden and found creative ways to entertain himself, including producing his own puppet shows. Coppola developed an interest in film early on and studied theater at Hofstra University in New York",
+      born: " 1939",
     },
   },
 
   {
-    "Title": "The Girl with the Dragon Tattoo",
-    "Description":
+    title: "The Girl with the Dragon Tattoo",
+    description:
       "Starring Daniel Craig as journalist Mikael Blomkvist and Rooney Mara as Lisbeth Salander, it tells the story of Blomkvist's investigation to find out what happened to a girl from a wealthy family who disappeared 40 years prior. He recruits the help of Salander, a computer hacker.",
-    "Genre": {
-      "Name": "Thriller",
+    genre: {
+      name: "Thriller",
     },
-    "Director": {
-      "Name": "David Fincher",
-      "Bio":
-        "David Fincher was born  in Denver, Colorado, and was raised in Marin County, California. When he was 18 years old he went to work for John Korty at Korty Films in Mill Valley. He subsequently worked at ILM (Industrial Light and Magic) from 1981-1983.",
-      "Born": "1962",
+    director: {
+      name: "David Fincher",
+      bio: "David Fincher was born  in Denver, Colorado, and was raised in Marin County, California. When he was 18 years old he went to work for John Korty at Korty Films in Mill Valley. He subsequently worked at ILM (Industrial Light and Magic) from 1981-1983.",
+      born: "1962",
     },
   },
 ];
@@ -99,7 +95,7 @@ app.post("/users", (req, res) => {
   if (newUser) {
     newUser.id = uuid.v4();
     user.push(newUser);
-    res.status(201).jason(newUser);
+    res.status(201).json(newUser);
   } else {
     res.status(400).send("user need names");
   }
@@ -114,7 +110,7 @@ app.put("/users/:id", (req, res) => {
 
   if (user) {
     user.name = updateUser.name;
-    res.status(200).jason(user);
+    res.status(200).json(user);
   } else {
     res.status(400).send("no such user");
   }
@@ -182,7 +178,7 @@ app.get("/movies/:title", (req, res) => {
   const movie = movies.find((movie) => movie.Title === title);
 
   if (movie) {
-    res.status(200), jason(movie);
+    res.status(200), json(movie);
   } else {
     res.status(400).send("no such movie");
   }
@@ -194,7 +190,7 @@ app.get("/movies/genre/:genreName", (req, res) => {
   const genre = movies.find((movie) => movie.Genre.Name === genreName).Genre;
 
   if (genre) {
-    res.status(200), jason(genre);
+    res.status(200), json(genre);
   } else {
     res.status(400).send("no such genre");
   }
@@ -208,7 +204,7 @@ app.get("/movies/directors/:directorName", (req, res) => {
   ).Director;
 
   if (director) {
-    res.status(200), jason(director);
+    res.status(200), json(director);
   } else {
     res.status(400).send("no such director");
   }
@@ -220,7 +216,7 @@ app.use(express.static("public"));
 // error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send("Something broke!");
+  res.status(500).send("Something may broke!");
 });
 
 // listen to port 8080
