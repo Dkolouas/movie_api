@@ -90,10 +90,10 @@ app.post ('/users', (req, res) => {
 
   if (newUser) {
     newUser.id = uuid.v4 ();
-    user.push (newUser);
+    users.push (newUser);
     res.status (201).json (newUser);
   } else {
-    res.status (400).send ('user need names');
+    res.status (400).send ('users need names');
   }
 });
 
@@ -102,7 +102,7 @@ app.put ('/users/:id', (req, res) => {
   const {id} = req.params;
   const updatedUser = req.body;
 
-  let user = users.find (user => user.id == id);
+  let user = users.find ( user => user.id == id);
 
   if (user) {
     user.name = updateUser.name;
