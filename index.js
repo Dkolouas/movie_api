@@ -8,6 +8,10 @@ const morgan = require('morgan'),
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+let auth = require('./auth')(app);
+const passport = require('passport');
+require('./passport');
+
 const mongoose = require('mongoose');
 Models = require('./models.js');
 Movies = Models.Movie;
@@ -26,13 +30,13 @@ app.get('/', (req, res) => {
 
 
 // Read All movies
-app.get('/movies', (req, res) => {
+app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.find()
     .then((movies) => {
-      res.status(200).json(movies);
+      res.status(201).json(movies);
     })
-    .catch((err) => {
-      res.status(500).send('Error: ' + err);
+    .catch((error) => {
+      res.status(500).send('Error: ' + error);
     });
 });
 
@@ -95,7 +99,7 @@ app.post('/users', (req, res) => {
   Users.findOne({ Username: req.body.Username })
     .then((user) => {
       if (user) {
-        return res.status(400).send(req.body.Username + 'already exists');
+        return res.status(400).send(req.body.Username + ' already exists')
       } else {
         Users
           .create({
@@ -133,7 +137,7 @@ app.get('/users/:Username', (req, res) => {
   Users.findOne({ Username: req.params.Username })
     .then((user) => {
       if (user) {
-        res.status(200).json(user);
+        res.status(200).json(user)
       } else {
         res.status(400).send('User with the username ' + req.params.Username + ' was not found');
       };
@@ -157,7 +161,7 @@ app.put('/users/:Username', (req, res) => {
     },
     { new: true })
     .then((updatedUser) => {
-      res.json(updatedUser);
+      res.json(updatedUser)
     })
     .catch((err) => {
       console.error(err);
