@@ -86,7 +86,6 @@ app.get('/movies/director/:Name', (req, res) => {
 });
 
 // Create user
-//Add a user
 /* We’ll expect JSON in this format
 {
   ID: Integer,
