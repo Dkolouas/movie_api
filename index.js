@@ -1,222 +1,224 @@
-const express = require ('express'), // Load express framework
-  bodyParser = require ('body-parser'),
-  morgan = require ('morgan'), // import morgan middleware
-  uuid = require ('uuid');
-const res = require ('express/lib/response');
+const express = require('express');
+const app = express();
 
-let users = [
-  {
-    id: 1,
-    name: 'Jon',
-    favoriteMovies: ['Inglourious Basterds'],
-  },
-  {
-    id: 2,
-    name: 'Kate',
-    favoriteMovies: [],
-  },
-];
+const morgan = require('morgan'),
+  bodyParser = require('body-parser'),
+  uuid = require('uuid');
 
-let movies = [
-  {
-    Title: 'Inglourious Basterds',
-    Description: "In Nazi-occupied France during World War II, a plan to assassinate Nazi leaders by a group of Jewish U.S. soldiers coincides with a theatre owner's vengeful plans for the same. In German-occupied France, young Jewish refugee Shosanna Dreyfus witnesses the slaughter of her family by Colonel Hans Landa",
-    Genre: {
-      Name: 'Action',
-    },
-    Director: {
-      Name: 'Quentin Tarantino',
-      Bio: 'Quentin Tarantino was born on March 27, in Knoxville, Tennessee. He is the only child of Connie McHugh, who is part Cherokee and part Irish, and actor Tony Tarantino, who left the family before Quentin was born. Moving to California at the age of 4, Tarantino developed his love for movies at an early age.',
-      Born: '1963',
-    },
-  },
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  {
-    Title: 'The Matrix',
-    Description: 'It depicts a dystopian future in which humanity is unknowingly trapped inside a simulated reality, the Matrix, which intelligent machines have created to distract humans while using their bodies as an energy source.',
-    Genre: {
-      Name: 'Sci-Fi',
-    },
-    Director: {
-      Name: 'Lana Wachowski',
-      Bio: 'Lana Wachowski He is an American film director, screenwriter and producer. Lana is a popular transgender woman and has been one of the best directors and writers for making a successful movie, “The Matrix” and her series and Critical hit movie “Bound” with his sister, Lilly Wachowski.',
-      Born: ' 1965 ',
-    },
-  },
+const mongoose = require('mongoose');
+Models = require('./models.js');
+Movies = Models.Movie;
+Users = Models.User;
 
-  {
-    Title: 'The Godfather',
-    Description: 'The Godfather is set in the 1940s and takes place entirely within the world of the Corleones, a fictional New York Mafia family. It opens inside the dark office of the family patriarch, Don Vito Corleone (also known as the Godfather and played by Brando), on the wedding day of his daughter, Connie (Talia Shire).',
-    Genre: {
-      Name: 'Drama',
-    },
-    Director: {
-      Name: ' Francis Ford Coppola',
-      Bio: 'Coppola was born on April 7, in Detroit, Michigan. Stricken with polio as a child, he was bedridden and found creative ways to entertain himself, including producing his own puppet shows. Coppola developed an interest in film early on and studied theater at Hofstra University in New York',
-      Born: ' 1939',
-    },
-  },
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
-  {
-    Title: 'The Girl with the Dragon Tattoo',
-    Description: "Starring Daniel Craig as journalist Mikael Blomkvist and Rooney Mara as Lisbeth Salander, it tells the story of Blomkvist's investigation to find out what happened to a girl from a wealthy family who disappeared 40 years prior. He recruits the help of Salander, a computer hacker.",
-    Genre: {
-      Name: 'Thriller',
-    },
-    Director: {
-      Name: 'David Fincher',
-      Bio: 'David Fincher was born  in Denver, Colorado, and was raised in Marin County, California. When he was 18 years old he went to work for John Korty at Korty Films in Mill Valley. He subsequently worked at ILM (Industrial Light and Magic) from 1981-1983.',
-      Born: '1962',
-    },
-  },
-];
+// Log  request  in terminal using Morgan
+app.use(morgan('common'));
 
-const app = express ();
-app.use (bodyParser.json ());
-//morgan function
-app.use (morgan ('common'));
+//welcome
+app.get('/', (req, res) => {
+  res.send('Welcome to the myMovies App!');
+});
 
-//app.get ('/', (req, res) => {
-//  res.send ('Welcome to my Movies App!');
-//});
 
-app.get ('/documentation', (req, res) => {
-  res.sendFile ('public/documentation.html', {root: __dirname});
+// Read All movies
+app.get('/movies', (req, res) => {
+  Movies.find()
+    .then((movies) => {
+      res.status(200).json(movies);
+    })
+    .catch((err) => {
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+// Read specific movie
+app.get('/movies/:title', (req, res) => {
+  Movies.findOne({ Title: req.params.title })
+    .then((movie) => {
+      if (movie) {
+        res.status(200).json(movie);
+      } else {
+        res.status(400).send('Movie not found');
+      };
+    })
+    .catch((err) => {
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+// read genre
+app.get('/movies/genre/:Name', (req, res) => {
+  Movies.findOne({ 'Genre.Name': req.params.Name })
+    .then((movie) => {
+      if (movie) {
+        res.status(200).json(movie.Genre);
+      } else {
+        res.status(400).send('Genre not found');
+      };
+    })
+    .catch((err) => {
+      res.status(500).send('Error: ' + err);
+    });
+});
+
+// read data of director
+app.get('/movies/director/:Name', (req, res) => {
+  Movies.findOne({ 'Director.Name': req.params.Name })
+    .then((movie) => {
+      if (movie) {
+        res.status(200).json(movie.Director);
+      } else {
+        res.status(400).send('Director not found');
+      };
+    })
+    .catch((err) => {
+      res.status(500).send('Error: ' + err);
+    });
 });
 
 // Create user
-app.post ('/users', (req, res) => {
-  const newUser = req.body;
-
-  if (newUser) {
-    newUser.id = uuid.v4 ();
-    users.push (newUser);
-    res.status (201).json (newUser);
-  } else {
-    res.status (400).send ('users need names');
-  }
+//Add a user
+/* We’ll expect JSON in this format
+{
+  ID: Integer,
+  Username: String,
+  Password: String,
+  Email: String,
+  Birthday: Date
+}*/
+app.post('/users', (req, res) => {
+  Users.findOne({ Username: req.body.Username })
+    .then((user) => {
+      if (user) {
+        return res.status(400).send(req.body.Username + 'already exists');
+      } else {
+        Users
+          .create({
+            Username: req.body.Username,
+            Password: req.body.Password,
+            Email: req.body.Email,
+            Birthday: req.body.Birthday
+          })
+          .then((user) => { res.status(201).json(user) })
+          .catch((error) => {
+            console.error(error);
+            res.status(500).send('Error: ' + error);
+          })
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send('Error: ' + error);
+    });
+});
+// Read all users
+app.get('/users', (req, res) => {
+  Users.find()
+    .then((users) => {
+      res.status(200).json(users);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//Update user
-app.put ('/users/:id', (req, res) => {
-  const {id} = req.params;
-  const updatedUser = req.body;
-
-  let user = users.find ( user => user.id == id );
-
-  if (user) {
-    user.name = updatedUser.name;
-    res.status (200).json (user);
-  } else {
-    res.status (400).send ('no such user');
-  }
+// Read specific user
+app.get('/users/:Username', (req, res) => {
+  Users.findOne({ Username: req.params.Username })
+    .then((user) => {
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(400).send('User with the username ' + req.params.Username + ' was not found');
+      };
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//Create movie
-app.post ('/users/:id/:movieTitle', (req, res) => {
-  const {id, movieTitle} = req.params;
-
-  let user = users.find (user => user.id == id);
-
-  if (user) {
-    user.favoriteMovies.push (movieTitle);
-    res
-      .status (200)
-      .send ('$(movieTitle) has been added to user $(id)`s array');
-  } else {
-    res.status (400).send ('no such user');
-  }
+// Update user
+app.put('/users/:Username', (req, res) => {
+  Users.findOneAndUpdate({ Username: req.params.Username },
+    {
+      $set: {
+        Username: req.body.Username,
+        Password: req.body.Password,
+        Email: req.body.Email,
+        Birthday: req.body.Birthday
+      }
+    },
+    { new: true })
+    .then((updatedUser) => {
+      res.json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//Delete movie
-app.delete ('/users/:id/:movieTitle', (req, res) => {
-  const {id, movieTitle} = req.params;
-
-  let user = users.find (user => user.id == id);
-
-  if (user) {
-    user.favoriteMovies = user.favoriteMovies.filter (
-      title => title !== movieTitle
-    );
-    res
-      .status (200)
-      .send ('$(movieTitle) has been removed from user $(id)`s array');
-  } else {
-    res.status (400).send ('no such user');
-  }
+// Create , add movie to users favorites
+app.post('/users/:Username/movies/:MovieID', (req, res) => {
+  Users.findOneAndUpdate({ Username: req.params.Username },
+    { $push: { FavoriteMovies: req.params.MovieID } },
+    { new: true })
+    .then((updatedUser) => {
+      res.json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//Delete user
-app.delete ('/users/:id', (req, res) => {
-  const {id} = req.params;
-
-  let user = users.find (user => user.id == id);
-
-  if (user) {
-    users = users.filter (user => user.id != id);
-    res.status (200).send ('users $(id) has been deleted');
-  } else {
-    res.status (400).send ('no such user');
-  }
+// Delete movie from favorites
+app.delete('/users/:Username/movies/:MovieID', (req, res) => {
+  Users.findOneAndUpdate({ Username: req.params.Username },
+    { $pull: { FavoriteMovies: req.params.MovieID } },
+    { new: true })
+    .then((updatedUser) => {
+      res.json(updatedUser);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//read all movies
-app.get ('/movies', (req, res) => {
-  res.status (200).json (movies);
+// Delete user
+app.delete('/users/:Username', (req, res) => {
+  Users.findOneAndRemove({ Username: req.params.Username })
+    .then((user) => {
+      if (user) {
+        res.status(200).send('User with the Username ' + req.params.Username + ' was successfully deleted.');
+      } else {
+        res.status(400).send('User with the Username ' + req.params.Username + ' was not found.');
+      };
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    });
 });
 
-//read all users
-app.get ('/users', (req, res) => {
-  res.status (200).json (users);
+app.use(express.static('public'));
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
-//read specific movie
-app.get ('/movies/:title', (req, res) => {
-  const {title} = req.params;
-  const movie = movies.find (movie => movie.Title === title);
-
-  if (movie) {
-    res.status (200).json (movie);
-  } else {
-    res.status (400).send ('no such movie');
-  }
-});
-
-//read specific genre
-app.get ('/movies/genre/:genreName', (req, res) => {
-  const {genreName} = req.params;
-  const genre = movies.find (movie => movie.Genre.Name === genreName).Genre;
-
-  if (genre) {
-    res.status (200).json (genre);
-  } else {
-    res.status (400).send ('no such genre');
-  }
-});
-
-//read director
-app.get ('/movies/directors/:directorName', (req, res) => {
-  const {directorName} = req.params;
-  const director = movies.find (movie => movie.Director.Name === directorName)
-    .Director;
-
-  if (director) {
-    res.status (200).json (director);
-  } else {
-    res.status (400).send ('no such director');
-  }
-});
-
-//static file given access via express static
-app.use (express.static ('public'));
-
-// error handling
-app.use ((err, req, res, next) => {
-  console.error (err.stack);
-  res.status (500).send ('Something broke!');
-});
-
-// listen to port 8080
-app.listen (8080, () => {
-  console.log ('Your app is listening on port 8080.');
+// Listen to port 8000
+const port = 8080;
+app.listen(port, () => {
+  console.log('Your app is listening on port ' + port);
 });
