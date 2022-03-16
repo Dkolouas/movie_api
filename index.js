@@ -24,7 +24,7 @@ const { check, validationResult } = require('express-validator');
 
 // Connect to MongoDB
 //mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });mongoose.connect('mongodb+srv://myMovieDbAppAdmin:9425649@mymovieappdb.zfjtn.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
-mongoose.('mongodb://localhost:27017/mymoviedb-app', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose('mongodb://localhost:27017/aqueous-tor-04339', { useNewUrlParser: true, useUnifiedTopology: true });
 // Log  request  in terminal using Morgan
 app.use(morgan('common'));
 
