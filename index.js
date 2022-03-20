@@ -23,8 +23,7 @@ Users = Models.User;
 const { check, validationResult } = require('express-validator');
 
 // Connect to MongoDB
-//mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });mongoose.connect('mongodb+srv://myMovieDbAppAdmin:9425649@mymovieappdb.zfjtn.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
-mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.CONNECTION_URI || 'mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Log  request  in terminal using Morgan
 app.use(morgan('common'));
@@ -34,6 +33,9 @@ app.get('/', (req, res) => {
   res.send('Welcome to the myMovies App!');
 });
 
+const handleError = (error, res) => {
+  res.status(500).send('Error: ' + error);
+};
 
 // Read All movies
 app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
@@ -42,7 +44,7 @@ app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) 
       res.status(201).json(movies);
     })
     .catch((error) => {
-      res.status(500).send('Error: ' + error);
+      handleError = (error, res);
     });
 });
 
@@ -53,11 +55,11 @@ app.get('/movies/:title', passport.authenticate('jwt', { session: false }), (req
       if (movie) {
         res.status(200).json(movie);
       } else {
-        res.status(400).send('Movie not found');
+        res.status(404).send('Movie not found');
       };
     })
-    .catch((err) => {
-      res.status(500).send('Error: ' + err);
+    .catch((error) => {
+      handleError = (error, res);
     });
 });
 
@@ -68,11 +70,11 @@ app.get('/movies/genre/:Name', passport.authenticate('jwt', { session: false }),
       if (movie) {
         res.status(200).json(movie.Genre);
       } else {
-        res.status(400).send('Genre not found');
+        res.status(404).send('Genre not found');
       };
     })
-    .catch((err) => {
-      res.status(500).send('Error: ' + err);
+    .catch((error) => {
+      handleError = (error, res);
     });
 });
 
@@ -83,11 +85,11 @@ app.get('/movies/director/:Name', passport.authenticate('jwt', { session: false 
       if (movie) {
         res.status(200).json(movie.Director);
       } else {
-        res.status(400).send('Director not found');
+        res.status(404).send('Director not found');
       };
     })
-    .catch((err) => {
-      res.status(500).send('Error: ' + err);
+    .catch((error) => {
+      handleError = (error, res);
     });
 });
 
@@ -125,7 +127,7 @@ app.post('/users',
       .then((user) => {
         if (user) {
           //If the user is found, send a response that it already exists
-          return res.status(400).send(req.body.Username + ' already exists');
+          return res.status(404).send(req.body.Username + ' already exists');
         } else {
           Users
             .create({
@@ -137,13 +139,13 @@ app.post('/users',
             .then((user) => { res.status(201).json(user) })
             .catch((error) => {
               console.error(error);
-              res.status(500).send('Error: ' + error);
+              handleError = (error, res);
             });
         }
       })
       .catch((error) => {
         console.error(error);
-        res.status(500).send('Error: ' + error);
+        handleError = (error, res);
       });
   });
 
@@ -155,7 +157,7 @@ app.get('/users', passport.authenticate('jwt', { session: false }), (req, res) =
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send('Error: ' + err);
+      handleError = (error, res);
     });
 });
 
@@ -166,22 +168,23 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (r
       if (user) {
         res.status(200).json(user)
       } else {
-        res.status(400).send('User with the username ' + req.params.Username + ' was not found');
+        res.status(404).send('User with the username ' + req.params.Username + ' was not found');
       };
     })
-    .catch((err) => {
+    .catch((error) => {
       console.error(err);
-      res.status(500).send('Error: ' + err);
+      handleError = (error, res);
     });
 });
 
 // Update user
 app.put('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
+  let hashedPassword = Users.hashPassword(req.body.Password);
   Users.findOneAndUpdate({ Username: req.params.Username },
     {
       $set: {
         Username: req.body.Username,
-        Password: req.body.Password,
+        Password: hashedPassword,
         Email: req.body.Email,
         Birthday: req.body.Birthday
       }
@@ -192,7 +195,7 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }), (r
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send('Error: ' + err);
+      handleError = (error, res);
     });
 });
 
@@ -205,8 +208,8 @@ app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { sess
       res.json(updatedUser);
     })
     .catch((err) => {
-      console.error(err);
-      res.status(500).send('Error: ' + err);
+      console.error(error);
+      handleError = (error, res);
     });
 });
 
@@ -219,8 +222,8 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
       res.json(updatedUser);
     })
     .catch((err) => {
-      console.error(err);
-      res.status(500).send('Error: ' + err);
+      console.error(error);
+      handleError = (error, res);
     });
 });
 
@@ -231,12 +234,12 @@ app.delete('/users/:Username', passport.authenticate('jwt', { session: false }),
       if (user) {
         res.status(200).send('User with the Username ' + req.params.Username + ' was successfully deleted.');
       } else {
-        res.status(400).send('User with the Username ' + req.params.Username + ' was not found.');
+        res.status(404).send('User with the Username ' + req.params.Username + ' was not found.');
       };
     })
     .catch((err) => {
-      console.error(err);
-      res.status(500).send('Error: ' + err);
+      console.error(error);
+      handleError = (error, res);
     });
 });
 
